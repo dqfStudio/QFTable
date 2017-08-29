@@ -9,6 +9,14 @@
 #import "QFTableView.h"
 #import <MJRefresh.h>
 
+@interface NSString (util)
+
+- (NSString *(^)(id))append;
+- (NSString *(^)(NSString *, NSString *))replace;
+- (NSArray<NSString *> *(^)(NSString *))componentsBySetString;
+
+@end
+
 @interface QFTableView ()
 
 @property (nonatomic, strong) QFTableModel *tableModel;
@@ -81,29 +89,11 @@
     
     for (NSString *url in arr) {
         
-        NSString *sectionSelector = nil;
-        NSString *cellSelector = nil;
-        NSString *section = nil;
+        NSArray<NSString *> *tmpArr = url.componentsBySetString(@"<>&");
         
-        
-        NSRange symbolRange = [url rangeOfString:@"&"];
-        NSRange leftRange   = [url rangeOfString:@"<"];
-        NSRange rightRange  = [url rangeOfString:@">"];
-        
-        
-        sectionSelector = [url substringToIndex:leftRange.location];
-        cellSelector = [url substringFromIndex:symbolRange.location+symbolRange.length];
-        
-        sectionSelector = [sectionSelector stringByReplacingOccurrencesOfString:@" " withString:@""];
-        cellSelector = [cellSelector stringByReplacingOccurrencesOfString:@" " withString:@""];
-        
-        sectionSelector = [NSString stringWithFormat:@"%@:",sectionSelector];
-        cellSelector = [NSString stringWithFormat:@"%@:",cellSelector];
-        
-        section = [url substringToIndex:rightRange.location];
-        section = [section substringFromIndex:leftRange.location+leftRange.length];
-        section = [section stringByReplacingOccurrencesOfString:@" " withString:@""];
-        
+        NSString *sectionSelector = tmpArr[0].replace(@" ", @"").append(@":");
+        NSString *section = tmpArr[1].replace(@" ", @"");
+        NSString *cellSelector = tmpArr[2].replace(@" ", @"").append(@":");
         
         [object performSelector:NSSelectorFromString(sectionSelector) withObjects:@[section]];
         [object performSelector:NSSelectorFromString(cellSelector) withObjects:@[section]];
@@ -139,3 +129,34 @@
 
 @end
 
+@implementation NSString (util)
+
+- (NSString *(^)(id))append {
+    return ^NSString *(id obj) {
+        return [NSString stringWithFormat:@"%@%@", self,obj];
+    };
+}
+
+- (NSString *(^)(NSString *, NSString *))replace {
+    return ^NSString *(NSString *org1, NSString *org2) {
+        return [self stringByReplacingOccurrencesOfString:org1 withString:org2];
+    };
+}
+
+- (NSArray<NSString *> *(^)(NSString *))componentsBySetString {
+    return ^NSArray<NSString *> *(NSString *separator) {
+        NSCharacterSet *characterSet = [NSCharacterSet characterSetWithCharactersInString:separator];
+        NSArray *arr = [self componentsSeparatedByCharactersInSet:characterSet];
+        NSMutableArray *mutablerArr = [NSMutableArray new];
+        //过滤掉为空的字符串
+        for (int i=0; i<arr.count; i++) {
+            NSString *str = arr[i];
+            if (str.length > 0) {
+                [mutablerArr addObject:str];
+            }
+        }
+        return mutablerArr;
+    };
+}
+
+@end
