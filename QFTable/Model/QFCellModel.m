@@ -3,7 +3,7 @@
 //  TableModel
 //
 //  Created by dqf on 2017/7/13.
-//  Copyright © 2017年 dqfStudio. All rights reserved.
+//  Copyright © 2017年 migu. All rights reserved.
 //
 
 #import "QFCellModel.h"
@@ -16,10 +16,6 @@
         _height = UITableViewAutomaticDimension;
     }
     return self;
-}
-
-+ (QFCellModel *)cell {
-    return [[self alloc] init];
 }
 
 @end

@@ -3,7 +3,7 @@
 //  TableModel
 //
 //  Created by dqf on 2017/7/13.
-//  Copyright © 2017年 dqfStudio. All rights reserved.
+//  Copyright © 2017年 migu. All rights reserved.
 //
 
 #import "QFTableModel.h"
@@ -22,11 +22,7 @@
     return self;
 }
 
-+ (QFTableModel *)table {
-    return [[self alloc] init];
-}
-
-- (void)addObject:(QFSectionModel *)anObject {
+- (void)addModel:(QFSectionModel *)anObject {
     if ([anObject isKindOfClass:[QFSectionModel class]]) {
         if (![self.sectionModelArray containsObject:anObject]) {
             [self.sectionModelArray addObject:anObject];
@@ -34,14 +30,14 @@
     }
 }
 
-- (QFSectionModel *)objectAtIndex:(NSUInteger)index {
+- (QFSectionModel *)sectionAtIndex:(NSUInteger)index {
     if (index < self.sectionModelArray.count) {
         return self.sectionModelArray[index];
     }
     return nil;
 }
 
-- (NSUInteger)indexOfObject:(QFSectionModel *)anObject {
+- (NSUInteger)indexOfSection:(QFSectionModel *)anObject {
     if ([anObject isKindOfClass:[QFSectionModel class]]) {
         return [self.sectionModelArray indexOfObject:anObject];
     }
@@ -71,7 +67,7 @@
 - (QFCellModel*)cellModelAtIndexPath:(NSIndexPath *)indexPath {
     @try {
         QFSectionModel *sectionModel = self.sectionModelArray[indexPath.section];
-        QFCellModel *cellModel = [sectionModel objectAtIndex:indexPath.row];
+        QFCellModel *cellModel = [sectionModel cellAtIndex:indexPath.row];
         return cellModel;
     }
     @catch (NSException *exception) {
@@ -82,15 +78,30 @@
 #pragma mark - UITableViewDelegate
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     QFCellModel *cellModel = [self cellModelAtIndexPath:indexPath];
-    return cellModel.height;
+    QFCellHeightBlock heightBlock = cellModel.heightBlock;
+    if (heightBlock) {
+        return heightBlock(indexPath, tableView);
+    } else {
+        return cellModel.height;
+    }
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     QFSectionModel *sectionModel = [self sectionModelAtSection:section];
-    return sectionModel.headerHeight;
+    QFSectionHeightBlock headerHeightBlock = sectionModel.headerHeightBlock;
+    if (headerHeightBlock) {
+        return headerHeightBlock(section, tableView);
+    } else {
+        return sectionModel.headerHeight;
+    }
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     QFSectionModel *sectionModel = [self sectionModelAtSection:section];
-    return sectionModel.footerHeight;
+    QFSectionHeightBlock footerHeightBlock = sectionModel.footerHeightBlock;
+    if (footerHeightBlock) {
+        return footerHeightBlock(section, tableView);
+    } else {
+        return sectionModel.footerHeight;
+    }
 }
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     QFSectionModel *sectionModel = [self sectionModelAtSection:section];

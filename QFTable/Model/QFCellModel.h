@@ -3,12 +3,13 @@
 //  TableModel
 //
 //  Created by dqf on 2017/7/13.
-//  Copyright © 2017年 dqfStudio. All rights reserved.
+//  Copyright © 2017年 migu. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+typedef CGFloat (^QFCellHeightBlock)(NSIndexPath *indexPath, UITableView *table);
 typedef UITableViewCell * (^QFCellRenderBlock)(NSIndexPath *indexPath, UITableView *table);
 typedef NSIndexPath * (^QFCellWillSelectBlock)(NSIndexPath *indexPath, UITableView *table);
 typedef void (^QFCellSelectionBlock)(NSIndexPath *indexPath, UITableView *table);
@@ -19,6 +20,7 @@ UITableViewCellEditingStyle editingStyle);
 /** Table view's row model */
 @interface QFCellModel : NSObject
 
+@property (nonatomic, copy) QFCellHeightBlock heightBlock;            // optional
 @property (nonatomic, copy) QFCellRenderBlock renderBlock;            // required
 @property (nonatomic, copy) QFCellWillDisplayBlock willDisplayBlock;  // optional
 @property (nonatomic, copy) QFCellWillSelectBlock willSelectBlock;    // optional
@@ -32,8 +34,5 @@ UITableViewCellEditingStyle editingStyle);
 //@property (nonatomic, assign) BOOL canMove;   //default NO
 @property (nonatomic, assign) UITableViewCellEditingStyle editingStyle;  // cell's editing style
 @property (nonatomic, copy) NSString *deleteConfirmationButtonTitle;  // delete confirmation title
-
-//实例化对象
-+ (QFCellModel *)cell;
 
 @end

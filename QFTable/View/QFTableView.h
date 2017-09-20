@@ -3,7 +3,7 @@
 //  TableModel
 //
 //  Created by dqf on 2017/7/14.
-//  Copyright © 2017年 dqfStudio. All rights reserved.
+//  Copyright © 2017年 migu. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -27,14 +27,21 @@ typedef void (^QFLoadMoreBlock)();
 //add QFSectionModel
 - (void)addModel:(QFSectionModel*)anObject;
 
-- (QFSectionModel *)objectAtIndex:(NSUInteger)index;
+- (QFSectionModel *)sectionAtIndex:(NSUInteger)index;
 
-- (NSUInteger)indexOfObject:(QFSectionModel *)anObject;
+- (NSUInteger)indexOfSection:(QFSectionModel *)anObject;
+
+- (QFCellModel *)cellAtIndexPath:(NSIndexPath *)indexPath;
+
+- (void)cellAtIndexPath:(NSIndexPath *)indexPath resetHeight:(NSInteger)height;
 
 - (void)reloadModel;
 
 //clear all model
 - (void)clearModel;
+
+//begin refresh
+- (void)beginRefresh;
 
 //stop refresh
 - (void)endRefresh;

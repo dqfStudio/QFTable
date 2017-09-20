@@ -3,7 +3,7 @@
 //  TableModel
 //
 //  Created by dqf on 2017/7/13.
-//  Copyright © 2017年 dqfStudio. All rights reserved.
+//  Copyright © 2017年 migu. All rights reserved.
 //
 
 #import "QFSectionModel.h"
@@ -24,11 +24,7 @@
     return self;
 }
 
-+ (QFSectionModel *)section {
-    return [[self alloc] init];
-}
-
-- (void)addObject:(QFCellModel *)anObject {
+- (void)addModel:(QFCellModel *)anObject {
     if ([anObject isKindOfClass:[QFCellModel class]]) {
         if (![self.cellModelArray containsObject:anObject]) {
             [self.cellModelArray addObject:anObject];
@@ -36,14 +32,14 @@
     }
 }
 
-- (QFCellModel *)objectAtIndex:(NSUInteger)index {
+- (QFCellModel *)cellAtIndex:(NSUInteger)index {
     if (index < self.cellModelArray.count) {
         return self.cellModelArray[index];
     }
     return nil;
 }
 
-- (NSUInteger)indexOfObject:(QFCellModel *)anObject {
+- (NSUInteger)indexOfCell:(QFCellModel *)anObject {
     if ([anObject isKindOfClass:[QFCellModel class]]) {
         return [self.cellModelArray indexOfObject:anObject];
     }

@@ -2,7 +2,7 @@
 //  NSObject+selector.m
 //  MGMobileMusic
 //
-//  Created by dqf on 2017/8/2.
+//  Created by dqf on 2017/7/13.
 //  Copyright © 2017年 migu. All rights reserved.
 //
 
@@ -13,18 +13,18 @@
 - (id)performSelector:(SEL)aSelector withObjects:(NSArray*)objects {
     
     //1、创建签名对象
-    NSMethodSignature*signature = [[self class] instanceMethodSignatureForSelector:aSelector];
+    NSMethodSignature *signature = [[self class] instanceMethodSignatureForSelector:aSelector];
     
     //2、判断传入的方法是否存在
     if (signature==nil) {
         //传入的方法不存在 就抛异常
-        NSString*info = [NSString stringWithFormat:@"-[%@ %@]:unrecognized selector sent to instance",[self class],NSStringFromSelector(aSelector)];
-        @throw [[NSException alloc] initWithName:@"方法没有" reason:info userInfo:nil];
+        NSString *info = [NSString stringWithFormat:@"-[%@ %@]:unrecognized selector sent to instance",[self class],NSStringFromSelector(aSelector)];
+        @throw [[NSException alloc] initWithName:@"此方法没有" reason:info userInfo:nil];
         return nil;
     }
     
     //3、、创建NSInvocation对象
-    NSInvocation*invocation = [NSInvocation invocationWithMethodSignature:signature];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
     
     //4、保存方法所属的对象
     invocation.target = self;

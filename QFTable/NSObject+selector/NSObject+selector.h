@@ -2,7 +2,7 @@
 //  NSObject+selector.h
 //  MGMobileMusic
 //
-//  Created by dqf on 2017/8/2.
+//  Created by dqf on 2017/7/13.
 //  Copyright © 2017年 migu. All rights reserved.
 //
 

@@ -3,7 +3,7 @@
 //  TableModel
 //
 //  Created by dqf on 2017/7/13.
-//  Copyright © 2017年 dqfStudio. All rights reserved.
+//  Copyright © 2017年 migu. All rights reserved.
 //
 
 #import "QFSectionModel.h"
@@ -15,15 +15,12 @@
  */
 @interface QFTableModel : NSObject <UITableViewDelegate, UITableViewDataSource>
 
-//实例化对象
-+ (QFTableModel *)table;
-
 //向model添加对象数据
-- (void)addObject:(QFSectionModel *)anObject;
+- (void)addModel:(QFSectionModel *)anObject;
 
-- (QFSectionModel *)objectAtIndex:(NSUInteger)index;
+- (QFSectionModel *)sectionAtIndex:(NSUInteger)index;
 
-- (NSUInteger)indexOfObject:(QFSectionModel *)anObject;
+- (NSUInteger)indexOfSection:(QFSectionModel *)anObject;
 
 - (NSUInteger)sections;
 

@@ -3,33 +3,43 @@
 //  TableModel
 //
 //  Created by dqf on 2017/7/14.
-//  Copyright © 2017年 dqfStudio. All rights reserved.
+//  Copyright © 2017年 migu. All rights reserved.
 //
 
 #import "QFTableView.h"
-#import <MJRefresh.h>
+#import "QFBaseCell.h"
+#import "MJRefresh.h"
 
 @interface NSString (util)
-
 - (NSString *(^)(id))append;
-- (NSString *(^)(NSString *, NSString *))replace;
 - (NSArray<NSString *> *(^)(NSString *))componentsBySetString;
-
 @end
 
 @interface QFTableView ()
-
+@property (nonatomic, weak)   id objc;
 @property (nonatomic, strong) QFTableModel *tableModel;
-
+@property (nonatomic, strong) NSMutableArray *sourceArray;
 @end
 
 @implementation QFTableView
 
-- (instancetype)initWithFrame:(CGRect)frame
-{
+- (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
         self.tableModel = [[QFTableModel alloc] init];
+        self.sourceArray = [NSMutableArray array];
+        self.tableFooterView = [UIView new];
+        self.delegate = self.tableModel;
+        self.dataSource = self.tableModel;
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+    if (self) {
+        self.tableModel = [[QFTableModel alloc] init];
+        self.sourceArray = [NSMutableArray array];
         self.tableFooterView = [UIView new];
         self.delegate = self.tableModel;
         self.dataSource = self.tableModel;
@@ -39,30 +49,42 @@
 
 //add QFSectionModel
 - (void)addModel:(QFSectionModel*)anObject {
-    [self.tableModel addObject:anObject];
+    [self.tableModel addModel:anObject];
 }
 
-- (QFSectionModel *)objectAtIndex:(NSUInteger)index {
-    return [self.tableModel objectAtIndex:index];
+- (QFSectionModel *)sectionAtIndex:(NSUInteger)index {
+    return [self.tableModel sectionAtIndex:index];
 }
 
-- (NSUInteger)indexOfObject:(QFSectionModel *)anObject {
-    return [self.tableModel indexOfObject:anObject];
+- (NSUInteger)indexOfSection:(QFSectionModel *)anObject {
+    return [self.tableModel indexOfSection:anObject];
+}
+
+- (QFCellModel *)cellAtIndexPath:(NSIndexPath *)indexPath {
+    QFSectionModel *sectionModel = [self sectionAtIndex:indexPath.section];
+    return [sectionModel cellAtIndex:indexPath.row];
+}
+
+- (void)cellAtIndexPath:(NSIndexPath *)indexPath resetHeight:(NSInteger)height {
+    QFCellModel *cellModel = [self cellAtIndexPath:indexPath];;
+    cellModel.height = height;
 }
 
 - (void)reloadModel {
-    [self reloadData];;
+    NSArray *arr = nil;
+    if (self.sourceArray.count > 0) {
+        arr = [self.sourceArray mutableCopy];
+    }
+    [self clearModel];
+    [self loadView:self.objc withArr:arr];
 }
 
 //clear all model
 - (void)clearModel {
+    if (self.sourceArray.count > 0) {
+        [self.sourceArray removeAllObjects];
+    }
     [self.tableModel clearModel];
-}
-
-//stop refresh
--(void)endRefresh {
-    [self.mj_header endRefreshing];
-    [self.mj_footer endRefreshing];
 }
 
 - (void)refreshView:(id)object withJson:(NSData *)json {
@@ -87,22 +109,71 @@
 
 - (void)loadView:(id)object withArr:(NSArray *)arr {
     
+    if (self.objc != object) {
+        self.objc = object;
+    }
+    if (arr.count > 0) {
+        [self.sourceArray addObjectsFromArray:arr];
+    }
+    
     for (NSString *url in arr) {
         
-        NSArray<NSString *> *tmpArr = url.componentsBySetString(@"<>&");
+        NSArray<NSString *> *tmpArr = url.componentsBySetString(@"<>");
         
-        NSString *sectionSelector = tmpArr[0].replace(@" ", @"").append(@":");
-        NSString *section = tmpArr[1].replace(@" ", @"");
-        NSString *cellSelector = tmpArr[2].replace(@" ", @"").append(@":");
+        NSString *sectionSelector = tmpArr[0].append(@":");
+        NSString *section = tmpArr[1];
+        NSString *cellSelector = tmpArr[2].append(@":");
         
-        [object performSelector:NSSelectorFromString(sectionSelector) withObjects:@[section]];
-        [object performSelector:NSSelectorFromString(cellSelector) withObjects:@[section]];
+        QFSectionModel *sectionModel = [self sectionAtIndex:section.integerValue];
+        if (!sectionModel) {
+            sectionModel = [QFSectionModel new];
+            [self addModel:sectionModel];
+        }
         
+        QFCellModel *cellModel = [QFCellModel new];
+        [sectionModel addModel:cellModel];
+        
+        if([object respondsToSelector:NSSelectorFromString(sectionSelector)]){
+            [object performSelector:NSSelectorFromString(sectionSelector) withObjects:@[sectionModel]];
+        }
+        
+        if([object respondsToSelector:NSSelectorFromString(cellSelector)]){
+            [object performSelector:NSSelectorFromString(cellSelector) withObjects:@[cellModel]];
+        }else {
+            cellModel.renderBlock = [self renderBlock];
+            cellModel.selectionBlock = [self selectionBlock];
+        }
+
     }
     
     //刷新列表
-    [self reloadModel];
+    [self reloadData];
     [self endRefresh];
+}
+
+- (QFCellRenderBlock)renderBlock {
+    return ^UITableViewCell *(NSIndexPath *indexPath, UITableView *table) {
+        QFBaseCell *cell = [QFBaseCell registerTable:table];
+        return cell;
+    };
+}
+
+- (QFCellSelectionBlock)selectionBlock {
+    return ^(NSIndexPath *indexPath, UITableView *table) {
+        [table deselectRowAtIndexPath:indexPath animated:YES];
+    };
+}
+
+- (void)beginRefresh {
+    if (_refreshBlock) {
+        [self.mj_header beginRefreshing];
+    }
+}
+
+//stop refresh
+-(void)endRefresh {
+    [self.mj_header endRefreshing];
+    [self.mj_footer endRefreshing];
 }
 
 - (void)setRefreshBlock:(QFRefreshBlock)refreshBlock {
@@ -130,33 +201,29 @@
 @end
 
 @implementation NSString (util)
-
 - (NSString *(^)(id))append {
     return ^NSString *(id obj) {
         return [NSString stringWithFormat:@"%@%@", self,obj];
     };
 }
-
-- (NSString *(^)(NSString *, NSString *))replace {
-    return ^NSString *(NSString *org1, NSString *org2) {
-        return [self stringByReplacingOccurrencesOfString:org1 withString:org2];
-    };
-}
-
 - (NSArray<NSString *> *(^)(NSString *))componentsBySetString {
     return ^NSArray<NSString *> *(NSString *separator) {
         NSCharacterSet *characterSet = [NSCharacterSet characterSetWithCharactersInString:separator];
+        NSCharacterSet *charSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
         NSArray *arr = [self componentsSeparatedByCharactersInSet:characterSet];
         NSMutableArray *mutablerArr = [NSMutableArray new];
         //过滤掉为空的字符串
         for (int i=0; i<arr.count; i++) {
             NSString *str = arr[i];
             if (str.length > 0) {
-                [mutablerArr addObject:str];
+                //过滤掉字符串两端为空的字符
+                NSString *trimStr = [str stringByTrimmingCharactersInSet:charSet];
+                if (trimStr.length > 0) {
+                    [mutablerArr addObject:trimStr];
+                }
             }
         }
         return mutablerArr;
     };
 }
-
 @end
