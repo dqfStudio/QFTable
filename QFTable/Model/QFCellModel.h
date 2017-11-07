@@ -34,5 +34,6 @@ UITableViewCellEditingStyle editingStyle);
 //@property (nonatomic, assign) BOOL canMove;   //default NO
 @property (nonatomic, assign) UITableViewCellEditingStyle editingStyle;  // cell's editing style
 @property (nonatomic, copy) NSString *deleteConfirmationButtonTitle;  // delete confirmation title
+@property (nonatomic, strong) NSString *selector; //cell对应的selector
 
 @end

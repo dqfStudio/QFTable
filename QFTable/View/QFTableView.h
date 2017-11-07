@@ -25,17 +25,6 @@ typedef void (^QFLoadMoreBlock)();
 @property (nonatomic, copy) QFRefreshBlock  refreshBlock;   // block to refresh data
 @property (nonatomic, copy) QFLoadMoreBlock loadMoreBlock;  // block to load more data
 
-//add QFSectionModel
-- (void)addModel:(QFSectionModel*)anObject;
-
-- (QFSectionModel *)sectionAtIndex:(NSUInteger)index;
-
-- (NSUInteger)indexOfSection:(QFSectionModel *)anObject;
-
-- (QFCellModel *)cellAtIndexPath:(NSIndexPath *)indexPath;
-
-- (void)cellAtIndexPath:(NSIndexPath *)indexPath resetHeight:(NSInteger)height;
-
 - (void)reloadModel;
 
 //clear all model
@@ -54,5 +43,7 @@ typedef void (^QFLoadMoreBlock)();
 - (void)loadView:(id)object withArr:(NSArray *)arr;
 
 - (void)loadView:(id)object withJson:(NSData *)json;
+
+- (void)cellAtIndexPath:(NSIndexPath *)indexPath resetHeight:(NSInteger)height;
 
 @end

@@ -18,7 +18,6 @@
 @interface QFTableView ()
 @property (nonatomic, weak)   id objc;
 @property (nonatomic, strong) QFTableModel *tableModel;
-@property (nonatomic, strong) NSMutableArray *sourceArray;
 @end
 
 @implementation QFTableView
@@ -26,8 +25,14 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
+        self.estimatedRowHeight = 0;
+        self.estimatedSectionHeaderHeight = 0;
+        self.estimatedSectionFooterHeight = 0;
+        if (@available(iOS 11.0, *)) {
+            self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+        
         self.tableModel = [[QFTableModel alloc] init];
-        self.sourceArray = [NSMutableArray array];
         self.tableFooterView = [UIView new];
         self.delegate = self.tableModel;
         self.dataSource = self.tableModel;
@@ -38,8 +43,14 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super initWithCoder:aDecoder];
     if (self) {
+        self.estimatedRowHeight = 0;
+        self.estimatedSectionHeaderHeight = 0;
+        self.estimatedSectionFooterHeight = 0;
+        if (@available(iOS 11.0, *)) {
+            self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+        
         self.tableModel = [[QFTableModel alloc] init];
-        self.sourceArray = [NSMutableArray array];
         self.tableFooterView = [UIView new];
         self.delegate = self.tableModel;
         self.dataSource = self.tableModel;
@@ -71,20 +82,36 @@
 }
 
 - (void)reloadModel {
-    NSArray *arr = nil;
-    if (self.sourceArray.count > 0) {
-        arr = [self.sourceArray mutableCopy];
+    for (int i=0; i<[self.tableModel sections]; i++) {
+        QFSectionModel *sectionModel = [self.tableModel sectionAtIndex:i];
+        NSString *sectionSelector = sectionModel.selector;
+        if (sectionSelector.length > 0 && sectionModel) {
+            SEL sel = NSSelectorFromString(sectionModel.selector);
+            if([self.objc respondsToSelector:sel]){
+                [self.objc performSelector:sel withObjects:@[sectionModel]];
+            }
+            
+            for (int j=0; j<[sectionModel cells]; j++) {
+                QFCellModel *cellModel = [sectionModel cellAtIndex:j];
+                NSString *cellSelector = sectionModel.selector;
+                if (cellSelector.length > 0 && cellModel) {
+                    SEL sel = NSSelectorFromString(cellModel.selector);
+                    if([self.objc respondsToSelector:sel]){
+                        [self.objc performSelector:sel withObjects:@[cellModel]];
+                    }
+                }
+            }
+        }
     }
-    [self clearModel];
-    [self loadView:self.objc withArr:arr];
+    //刷新列表
+    [self reloadData];
 }
 
 //clear all model
 - (void)clearModel {
-    if (self.sourceArray.count > 0) {
-        [self.sourceArray removeAllObjects];
-    }
     [self.tableModel clearModel];
+    //刷新列表
+    [self reloadData];
 }
 
 - (void)refreshView:(id)object withJson:(NSData *)json {
@@ -109,12 +136,7 @@
 
 - (void)loadView:(id)object withArr:(NSArray *)arr {
     
-    if (self.objc != object) {
-        self.objc = object;
-    }
-    if (arr.count > 0) {
-        [self.sourceArray addObjectsFromArray:arr];
-    }
+    if (self.objc != object) self.objc = object;
     
     for (NSString *url in arr) {
         
@@ -127,15 +149,20 @@
         QFSectionModel *sectionModel = [self sectionAtIndex:section.integerValue];
         if (!sectionModel) {
             sectionModel = [QFSectionModel new];
+            [sectionModel setSelector:sectionSelector];
             [self addModel:sectionModel];
+            
+            if([object respondsToSelector:NSSelectorFromString(sectionSelector)]){
+                [object performSelector:NSSelectorFromString(sectionSelector) withObjects:@[sectionModel]];
+            }else {
+                sectionModel.headerHeight = 0;
+                sectionModel.footerHeight = 0;
+            }
         }
         
         QFCellModel *cellModel = [QFCellModel new];
+        [cellModel setSelector:cellSelector];
         [sectionModel addModel:cellModel];
-        
-        if([object respondsToSelector:NSSelectorFromString(sectionSelector)]){
-            [object performSelector:NSSelectorFromString(sectionSelector) withObjects:@[sectionModel]];
-        }
         
         if([object respondsToSelector:NSSelectorFromString(cellSelector)]){
             [object performSelector:NSSelectorFromString(cellSelector) withObjects:@[cellModel]];

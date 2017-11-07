@@ -29,6 +29,8 @@ typedef CGFloat (^QFSectionHeightBlock)(NSInteger section, UITableView *table);
 @property (nonatomic, strong) UIView *headerView;  // section header view
 @property (nonatomic, strong) UIView *footerView;  // section footer view
 
+@property (nonatomic, strong) NSString *selector;  //section对应的selector
+
 //向model添加对象数据
 - (void)addModel:(QFCellModel *)anObject;
 
